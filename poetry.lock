@@ -33,6 +33,34 @@ docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-issues
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "pyaes"
+version = "1.6.1"
+description = "Pure-Python Implementation of the AES block-cipher and common modes of operation"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "pyrogram"
+version = "2.0.59"
+description = "Elegant, modern and asynchronous Telegram MTProto API framework in Python for users and bots"
+category = "main"
+optional = false
+python-versions = "~=3.7"
+
+[package.dependencies]
+pyaes = "1.6.1"
+pysocks = "1.7.1"
+
+[[package]]
+name = "pysocks"
+version = "1.7.1"
+description = "A Python SOCKS client module. See https://github.com/Anorov/PySocks for more information."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[[package]]
 name = "pywavelets"
 version = "1.4.1"
 description = "PyWavelets, wavelet transform module"
@@ -62,11 +90,14 @@ dev = ["mypy", "typing-extensions", "pycodestyle", "flake8"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "8520266b7ea1275320c48118326971a86bfeefcafd8ea5d71c8dfb089a405fd5"
+content-hash = "7cf9400918d7eca189fa3f349574ce52875bed873cc2c461fc9c6fb1ffd5f4ae"
 
 [metadata.files]
 imagehash = []
 numpy = []
 pillow = []
+pyaes = []
+pyrogram = []
+pysocks = []
 pywavelets = []
 scipy = []
