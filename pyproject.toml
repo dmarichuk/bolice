@@ -9,6 +9,7 @@ python = "^3.10"
 ImageHash = "^4.3.1"
 Pillow = "^9.2.0"
 Pyrogram = "^2.0.59"
+pymongo = {extras = ["srv"], version = "^4.3.2"}
 
 [tool.poetry.dev-dependencies]
 

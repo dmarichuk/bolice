@@ -1,0 +1,11 @@
+services:
+  mongodb:
+    image: mongo:4.4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: superuser
+      MONGO_INITDB_ROOT_PASSWORD: superpassword
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db_data/db:/data/db
