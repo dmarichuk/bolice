@@ -2,9 +2,8 @@ services:
   mongodb:
     image: mongo:4.4
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: superuser
-      MONGO_INITDB_ROOT_PASSWORD: superpassword
+    env_file:
+      - "./app/.env"
     ports:
       - 27017:27017
     volumes:

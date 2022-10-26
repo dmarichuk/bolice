@@ -1,6 +1,8 @@
 from pymongo import MongoClient, cursor
+from config import MONGO_USERNAME, MONGO_PASSWORD
 
-MONGO_CONN_STR = "mongodb://superuser:superpassword@localhost:27017"
+
+MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017"
 
 class MongoConnection:
 
@@ -13,5 +15,5 @@ class MongoConnection:
 
     def __getitem__(self, col_name: str) -> cursor.Cursor:
         col = self.client[col_name]
-        col.create_index("img_hash")
+        col.create_index("img_hash", unique=True)
         return col
