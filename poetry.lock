@@ -130,10 +130,31 @@ test = ["pytest", "pytest-cov", "pytest-xdist", "asv", "mpmath", "gmpy2", "threa
 doc = ["sphinx (!=4.1.0)", "pydata-sphinx-theme (==0.9.0)", "sphinx-panels (>=0.5.2)", "matplotlib (>2)", "numpydoc", "sphinx-tabs"]
 dev = ["mypy", "typing-extensions", "pycodestyle", "flake8"]
 
+[[package]]
+name = "tgcrypto"
+version = "1.2.4"
+description = "Fast and Portable Cryptography Extension Library for Pyrogram"
+category = "main"
+optional = false
+python-versions = "~=3.7"
+
+[[package]]
+name = "uvloop"
+version = "0.17.0"
+description = "Fast implementation of asyncio event loop on top of libuv"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+dev = ["Cython (>=0.29.32,<0.30.0)", "pytest (>=3.6.0)", "Sphinx (>=4.1.2,<4.2.0)", "sphinxcontrib-asyncio (>=0.3.0,<0.4.0)", "sphinx-rtd-theme (>=0.5.2,<0.6.0)", "flake8 (>=3.9.2,<3.10.0)", "psutil", "pycodestyle (>=2.7.0,<2.8.0)", "pyOpenSSL (>=22.0.0,<22.1.0)", "mypy (>=0.800)", "aiohttp"]
+docs = ["Sphinx (>=4.1.2,<4.2.0)", "sphinxcontrib-asyncio (>=0.3.0,<0.4.0)", "sphinx-rtd-theme (>=0.5.2,<0.6.0)"]
+test = ["flake8 (>=3.9.2,<3.10.0)", "psutil", "pycodestyle (>=2.7.0,<2.8.0)", "pyOpenSSL (>=22.0.0,<22.1.0)", "mypy (>=0.800)", "Cython (>=0.29.32,<0.30.0)", "aiohttp"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "f381c30a76fe14a5f1af3e4cdcba0dd76c01ec784f5fe217041ea85b1ffc37b9"
+content-hash = "90604b16ab440bf67e0f29179f26fd90e2eea2bacec13bd4e4c5f19964414344"
 
 [metadata.files]
 dnspython = [
@@ -153,3 +174,5 @@ python-decouple = [
 ]
 pywavelets = []
 scipy = []
+tgcrypto = []
+uvloop = []

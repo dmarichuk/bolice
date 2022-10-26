@@ -1,5 +1,5 @@
-import io
 import asyncio
+import uvloop
 
 from db import MongoConnection
 from config import (TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN)
@@ -9,6 +9,7 @@ from utils import get_custom_logger
 
 
 logger = get_custom_logger("bot")
+uvloop.install()
 
 app = Client(
     "agressive_d_disk_bot",
