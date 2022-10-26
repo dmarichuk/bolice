@@ -3,7 +3,7 @@ import typing as t
 import PIL
 from utils import get_custom_logger
 
-logger = get_custom_logger(__name__)
+logger = get_custom_logger("hash")
 
 def init_image(data: t.BinaryIO) -> PIL.Image:
     try:

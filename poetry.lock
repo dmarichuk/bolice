@@ -96,6 +96,14 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
+name = "python-decouple"
+version = "3.6"
+description = "Strict separation of settings from code."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pywavelets"
 version = "1.4.1"
 description = "PyWavelets, wavelet transform module"
@@ -125,7 +133,7 @@ dev = ["mypy", "typing-extensions", "pycodestyle", "flake8"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "4bb99ddf88656aeb5d37825d26ec9efbd596c3ffc73737c908e8ad4a6f431fc6"
+content-hash = "f381c30a76fe14a5f1af3e4cdcba0dd76c01ec784f5fe217041ea85b1ffc37b9"
 
 [metadata.files]
 dnspython = [
@@ -139,5 +147,9 @@ pyaes = []
 pymongo = []
 pyrogram = []
 pysocks = []
+python-decouple = [
+    {file = "python-decouple-3.6.tar.gz", hash = "sha256:2838cdf77a5cf127d7e8b339ce14c25bceb3af3e674e039d4901ba16359968c7"},
+    {file = "python_decouple-3.6-py3-none-any.whl", hash = "sha256:6cf502dc963a5c642ea5ead069847df3d916a6420cad5599185de6bab11d8c2e"},
+]
 pywavelets = []
 scipy = []
