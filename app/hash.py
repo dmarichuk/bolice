@@ -10,7 +10,7 @@ def init_image(data: t.BinaryIO) -> PIL.Image:
         img = PIL.Image.open(data)
     except PIL.UnidentifiedImageError:
         logger.error("File can not be read as image")
-        return None   
+        return None  
     return img
 
 def get_phash(img: PIL.Image, hash_size=16, highfreq_factor=4) -> ImageHash:
