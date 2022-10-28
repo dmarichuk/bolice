@@ -56,7 +56,7 @@ async def photo_handler(client: Client, message: pt.Message):
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     await client.send_photo(chat_id, photo="./app/static/bolice.jpg", caption="🚨🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨🚨", reply_to_message_id=bayan_msg.id)
     await client.send_message(chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал")
-    countdown = 60
+    countdown = 10
     poll = await client.send_poll(
         chat_id, 
         question="Оправдать?", 
@@ -69,7 +69,8 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         # TODO продумать отображение числа секунд в виде таймера "5:00, 4:59" и тд
         await asyncio.sleep(1)
         countdown -= 1
-        await edit_inline_button_with_void(client, chat_id, poll.id, countdown)
+        if countdown % 10 == 0:
+            await edit_inline_button_with_void(client, chat_id, poll.id, countdown)
     
     await client.stop_poll(chat_id, poll.id)
     await edit_inline_button_with_void(client, chat_id, poll.id, "Голосование завершено!")
@@ -77,8 +78,9 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     updated_poll = await bot_app.get_messages(chat_id, poll.id)
     pro, contra = [option.voter_count for option in updated_poll.poll.options] 
     if execute_sentence(pro, contra):
-        # выбор картинки для банов
-        await bot_app.ban_chat_member(chat_id, bayan_msg.user.id, until_date=dt.datetime.timestamp() + 120) # TODO randomize ban time depending on ratio value
+        punishment_time = 120
+        await bot_app.send_photo(chat_id, "./app/static/punish.jpg", reply_to_message_id=updated_poll.id, caption=f"ПРИГОВОРЕН К {punishment_time} СЕКУНДАМ ЗАКЛЮЧЕНИЯ!")
+        await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time)) # TODO randomize ban time depending on ratio value
     else:
         await bot_app.send_photo(chat_id, "./app/static/justified.jpg", reply_to_message_id=updated_poll.id, caption="ПОЛНОСТЬЮ ОПРАВДАН!") # TODO расширить диапазон картинок для отмены быкования
         # TODO добавить документ картинки в неактивный
