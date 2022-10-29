@@ -15,5 +15,8 @@ class MongoConnection:
 
     def __getitem__(self, col_name: str) -> cursor.Cursor:
         col = self.client[col_name]
-        col.create_index("img_hash", unique=True)
+        if len(list(col.list_indexes())) < 2:
+            col.create_index([("img_hash", 1)], unique=True)
+            col.create_index([("img_hash", 1), ("is_active", 1)])
+            col.create_index([("message_id", 1)])
         return col

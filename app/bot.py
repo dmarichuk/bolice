@@ -6,8 +6,8 @@ from db import MongoConnection
 from pymongo import errors as mongo_errors
 from config import (TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN)
 from pyrogram import Client, filters, types as pt
-from hash import init_image, get_phash
-from utils import get_custom_logger
+from hash import init_image, get_image_hash
+from utils import get_custom_logger, translate_seconds_to_timer
 
 
 logger = get_custom_logger("bot")
@@ -38,23 +38,24 @@ async def photo_handler(client: Client, message: pt.Message):
         return
     logger.info("Initialized PIL.Image from telegram photo")
     
-    hash = get_phash(img)
+    hash = get_image_hash(img)
     logger.info(f"Obtained image hash: {str(hash)}")
 
     conn = MongoConnection()
     col = conn[str(message.chat.id)]
     
     try:
-        doc = col.insert_one({"img_hash": str(hash), "message_id": message.id, "file_id": message.photo.file_id, "active": True})
+        doc = col.insert_one({"img_hash": str(hash), "message_id": message.id, "file_id": message.photo.file_id, "is_active": True})
         logger.info(f"Inserted document {doc.inserted_id} to db")
     except mongo_errors.DuplicateKeyError:
-        logger.warning("Hash already in DB")
-        orig_doc = col.find_one({"img_hash": str(hash)})
-        await activate_bolice(client, message.chat.id, message, orig_doc)
+        if col.find_one({"img_hash": str(hash), "is_active": True}):
+            logger.warning("Hash already in DB")
+            orig_doc = col.find_one({"img_hash": str(hash)})
+            await activate_bolice(client, message.chat.id, message, orig_doc)
 
 
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
-    await client.send_photo(chat_id, photo="./app/static/bolice.jpg", caption="🚨🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨🚨", reply_to_message_id=bayan_msg.id)
+    await client.send_photo(chat_id, photo="./app/static/bolice.jpg", caption="🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨", reply_to_message_id=bayan_msg.id)
     await client.send_message(chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал")
     countdown = 10
     poll = await client.send_poll(
@@ -63,14 +64,14 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         options=["Виновен", "Невиновен"], 
     )
     
-    await edit_inline_button_with_void(client, chat_id, poll.id, countdown)
+    await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
 
     while countdown > 0:
         # TODO продумать отображение числа секунд в виде таймера "5:00, 4:59" и тд
         await asyncio.sleep(1)
         countdown -= 1
         if countdown % 10 == 0:
-            await edit_inline_button_with_void(client, chat_id, poll.id, countdown)
+            await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
     
     await client.stop_poll(chat_id, poll.id)
     await edit_inline_button_with_void(client, chat_id, poll.id, "Голосование завершено!")
@@ -83,7 +84,9 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time)) # TODO randomize ban time depending on ratio value
     else:
         await bot_app.send_photo(chat_id, "./app/static/justified.jpg", reply_to_message_id=updated_poll.id, caption="ПОЛНОСТЬЮ ОПРАВДАН!") # TODO расширить диапазон картинок для отмены быкования
-        # TODO добавить документ картинки в неактивный
+        conn = MongoConnection()
+        col = conn[str(chat_id)]
+        col.find_one_and_update({"hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}})
  
 def execute_sentence(pro, contra):
     try:
@@ -114,7 +117,7 @@ async def parse_chat_photos(client, chat_id):
             if msg.photo:
                 f = await client.download_media(msg.photo, in_memory=True)
                 img = init_image(f)
-                hash = get_phash(img)
+                hash = get_image_hash(img)
                 try:
                     doc = col.insert_one({"img_hash": str(hash), "message_id": msg.id, "file_id": msg.photo.file_id, "active": True})
                     logger.info(f"Inserted document {doc} to db")
@@ -122,12 +125,12 @@ async def parse_chat_photos(client, chat_id):
                     logger.warning("Hash already in DB")
 
                     logger.info("Getting duplicate image")
-                    dup_doc = col.find_one({"img_hash": str(hash)})
+                    bayan = col.find_one_and_update({"img_hash": str(hash)}, {"$set": {"message_id": msg.id}})
                     
                     logger.info("Creating directory and save collisions")
-                    dir_name = f'{msg.id}_{dup_doc["message_id"]}'
+                    dir_name = f'{msg.id}_{bayan["message_id"]}'
                     await client.download_media(msg.photo, f"./media/collisions/{dir_name}/")
-                    await client.download_media(dup_doc["file_id"], f"./media/collisions/{dir_name}/")
+                    await client.download_media(bayan["file_id"], f"./media/collisions/{dir_name}/")
                 
 
 if __name__ == "__main__":
