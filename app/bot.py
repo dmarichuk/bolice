@@ -64,7 +64,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         question="Оправдать?", 
         options=["Виновен", "Невиновен"], 
     )
-    countdown = 10
+    countdown = 300
     await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
 
     while countdown > 0:
@@ -92,8 +92,7 @@ def execute_sentence(pro, contra):
     try:
         ratio = contra / pro
     except ZeroDivisionError:
-        punishment_time = get_punishment_time(1)
-        return True
+        return False, 0
     if ratio > 1:
         return False, 0
     else:
@@ -102,7 +101,7 @@ def execute_sentence(pro, contra):
 
 def get_punishment_time(ratio):
     random.seed(dt.datetime.now().second)
-    if ratio == 1:
+    if ratio == 0:
         return random.randint(60 * 15, 60 * 60 - 1)
     if ratio >= 0.75:
         return random.randint(60 * 10, 60 * 15)
