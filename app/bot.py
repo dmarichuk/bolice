@@ -56,9 +56,11 @@ async def photo_handler(client: Client, message: pt.Message):
 
 
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
+    logger.info("Bolice activated in chat", chat_id, "MSG_ID", bayan_msg.id, "DOC ID", orig_doc["id"])
     await client.send_photo(chat_id, photo="./app/static/bolice.jpg", caption="🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨", reply_to_message_id=bayan_msg.id)
     await client.send_message(chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал")
     
+    logger.info("Poll is activated")
     poll = await client.send_poll(
         chat_id, 
         question="Оправдать?", 
@@ -74,20 +76,24 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         if countdown % 10 == 0:
             await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
     
-    await client.stop_poll(chat_id, poll.id)
     await edit_inline_button_with_void(client, chat_id, poll.id, "Голосование завершено!")
-
+    
     updated_poll = await bot_app.get_messages(chat_id, poll.id)
     pro, contra = [option.voter_count for option in updated_poll.poll.options]
+    logger.info(f"Poll is closed. PRO {pro}, CONTRA {contra}")
+    
     guilty, punishment_time = execute_sentence(pro, contra)
     if guilty:
+        logger.info(f"{bayan_msg.from_user.id} is guilty. Execute punishment for {punishment_time}")
         await bot_app.send_photo(chat_id, "./app/static/punish.jpg", reply_to_message_id=updated_poll.id, caption=f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ! ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}")
         await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time))
     else:
+        logger.info(f"{bayan_msg.from_user.id} is innocent. Punishment time is {punishment_time}")
         await bot_app.send_photo(chat_id, "./app/static/justified.jpg", reply_to_message_id=updated_poll.id, caption="ПОЛНОСТЬЮ ОПРАВДАН!")
         conn = MongoConnection()
         col = conn[str(chat_id)]
-        col.find_one_and_update({"hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}})
+        updated_doc = col.find_one_and_update({"hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}})
+        logger.info(f"Deactivated document {updated_doc['_id']}")
  
 def execute_sentence(pro, contra):
     try:
