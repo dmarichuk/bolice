@@ -62,9 +62,10 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     poll = await client.send_poll(
         chat_id, 
         question="Оправдать?", 
-        options=["Виновен", "Невиновен"], 
+        options=["Виновен", "Невиновен"],
+        is_anonymous=False,
+        open_period=countdown
     )
-    countdown = 300
     await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
 
     while countdown > 0:
@@ -78,7 +79,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
 
     updated_poll = await bot_app.get_messages(chat_id, poll.id)
     pro, contra = [option.voter_count for option in updated_poll.poll.options]
-    guilty, punishment_time = execute_sentence(pro, contra) 
+    guilty, punishment_time = execute_sentence(pro, contra)
     if guilty:
         await bot_app.send_photo(chat_id, "./app/static/punish.jpg", reply_to_message_id=updated_poll.id, caption=f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ! ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}")
         await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time))
@@ -146,5 +147,5 @@ async def parse_chat_photos(client, chat_id):
                 
 
 if __name__ == "__main__":
-    # bot_app.run()
-    user_app.run(parse_chat_photos(user_app, -1001253753634))
+    bot_app.run()
+    # user_app.run(parse_chat_photos(user_app, -1001253753634))
