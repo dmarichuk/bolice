@@ -113,12 +113,13 @@ def get_punishment_time(ratio):
     random.seed(dt.datetime.now().second)
     if ratio == 0:
         return random.randint(60 * 15, 60 * 60 - 1)
-    if ratio <= 1:
-        return random.randint(60, 60 * 5)
-    if ratio <= 0.66:
-        return random.randint(60 * 5, 60 * 10)
     if ratio <= 0.33:
         return random.randint(60 * 10, 60 * 15)
+    if ratio <= 0.66:
+        return random.randint(60 * 5, 60 * 10)
+    if ratio <= 1:
+        return random.randint(60, 60 * 5)
+
     
 async def edit_inline_button_with_void(client, chat_id, msg_id, data):
     await client.edit_message_reply_markup(chat_id, msg_id, reply_markup=pt.InlineKeyboardMarkup([
