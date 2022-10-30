@@ -63,7 +63,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     await client.send_message(chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал")
     
     logger.info("Poll is activated")
-    countdown = 30
+    countdown = 300
     poll = await client.send_poll(
         chat_id, 
         question="Оправдать?", 
