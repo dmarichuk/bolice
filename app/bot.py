@@ -1,6 +1,7 @@
 import asyncio
 import uvloop
 import datetime as dt
+import random
 
 from db import MongoConnection
 from pymongo import errors as mongo_errors
@@ -57,17 +58,16 @@ async def photo_handler(client: Client, message: pt.Message):
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     await client.send_photo(chat_id, photo="./app/static/bolice.jpg", caption="🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨", reply_to_message_id=bayan_msg.id)
     await client.send_message(chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал")
-    countdown = 10
+    
     poll = await client.send_poll(
         chat_id, 
         question="Оправдать?", 
         options=["Виновен", "Невиновен"], 
     )
-    
+    countdown = 10
     await edit_inline_button_with_void(client, chat_id, poll.id, f"Осталось {translate_seconds_to_timer(countdown)}")
 
     while countdown > 0:
-        # TODO продумать отображение числа секунд в виде таймера "5:00, 4:59" и тд
         await asyncio.sleep(1)
         countdown -= 1
         if countdown % 10 == 0:
@@ -77,27 +77,40 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     await edit_inline_button_with_void(client, chat_id, poll.id, "Голосование завершено!")
 
     updated_poll = await bot_app.get_messages(chat_id, poll.id)
-    pro, contra = [option.voter_count for option in updated_poll.poll.options] 
-    if execute_sentence(pro, contra):
-        punishment_time = 120
-        await bot_app.send_photo(chat_id, "./app/static/punish.jpg", reply_to_message_id=updated_poll.id, caption=f"ПРИГОВОРЕН К {punishment_time} СЕКУНДАМ ЗАКЛЮЧЕНИЯ!")
-        await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time)) # TODO randomize ban time depending on ratio value
+    pro, contra = [option.voter_count for option in updated_poll.poll.options]
+    guilty, punishment_time = execute_sentence(pro, contra) 
+    if guilty:
+        await bot_app.send_photo(chat_id, "./app/static/punish.jpg", reply_to_message_id=updated_poll.id, caption=f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ! ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}")
+        await bot_app.restrict_chat_member(chat_id, bayan_msg.from_user.id, permissions=pt.ChatPermissions(), until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time))
     else:
-        await bot_app.send_photo(chat_id, "./app/static/justified.jpg", reply_to_message_id=updated_poll.id, caption="ПОЛНОСТЬЮ ОПРАВДАН!") # TODO расширить диапазон картинок для отмены быкования
+        await bot_app.send_photo(chat_id, "./app/static/justified.jpg", reply_to_message_id=updated_poll.id, caption="ПОЛНОСТЬЮ ОПРАВДАН!")
         conn = MongoConnection()
         col = conn[str(chat_id)]
         col.find_one_and_update({"hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}})
  
 def execute_sentence(pro, contra):
     try:
-        ratio = pro / contra
+        ratio = contra / pro
     except ZeroDivisionError:
+        punishment_time = get_punishment_time(1)
         return True
-    if ratio <= 1:
-        return False
+    if ratio > 1:
+        return False, 0
     else:
-        return True
+        punishment_time = get_punishment_time(ratio)
+        return True, punishment_time
 
+def get_punishment_time(ratio):
+    random.seed(dt.datetime.now().second)
+    if ratio == 1:
+        return random.randint(60 * 15, 60 * 60 - 1)
+    if ratio >= 0.75:
+        return random.randint(60 * 10, 60 * 15)
+    if ratio >= 0.66:
+        return random.randint(60 * 5, 60 * 10)
+    if ratio >= 0.5:
+        return random.randint(60, 60 * 5)
+    
 async def edit_inline_button_with_void(client, chat_id, msg_id, data):
     await client.edit_message_reply_markup(chat_id, msg_id, reply_markup=pt.InlineKeyboardMarkup([
             [pt.InlineKeyboardButton(data, "void")]
@@ -120,7 +133,7 @@ async def parse_chat_photos(client, chat_id):
                 hash = get_image_hash(img)
                 try:
                     doc = col.insert_one({"img_hash": str(hash), "message_id": msg.id, "file_id": msg.photo.file_id, "active": True})
-                    logger.info(f"Inserted document {doc} to db")
+                    logger.info(f"Inserted document {doc.inserted_id} to db")
                 except mongo_errors.DuplicateKeyError:
                     logger.warning("Hash already in DB")
 
@@ -134,5 +147,5 @@ async def parse_chat_photos(client, chat_id):
                 
 
 if __name__ == "__main__":
-    bot_app.run()
-    # user_app.run(parse_chat_photos(user_app, -1001253753634))
+    # bot_app.run()
+    user_app.run(parse_chat_photos(user_app, -1001253753634))
