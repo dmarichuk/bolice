@@ -13,10 +13,15 @@ jobs:
         uses: eric2788/pyinstaller-build@0.1.3
         with:
           main: app/bot
-          dist: ./
+          dist: .build
           python_version: 3.9.7
           pyinstaller_version: 4.7
           artifact: bolice_app
           use-dependencies: true
           no-console: false
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: .build
+          path: dist
