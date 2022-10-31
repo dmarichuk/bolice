@@ -1,8 +1,9 @@
 from pymongo import MongoClient, cursor
-from config import MONGO_USERNAME, MONGO_PASSWORD
+from config import MONGO_USERNAME, MONGO_PASSWORD, MONGO_HOST, MONGO_PORT
 
 
-MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017"
+MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
+
 
 class MongoConnection:
 

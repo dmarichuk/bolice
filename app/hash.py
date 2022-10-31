@@ -6,6 +6,7 @@ from utils import get_custom_logger
 
 logger = get_custom_logger("hash")
 
+
 def init_image(data: t.BinaryIO) -> PIL.Image:
     try:
         img = PIL.Image.open(data)
@@ -14,13 +15,16 @@ def init_image(data: t.BinaryIO) -> PIL.Image:
         return None  
     return img
 
+
 def get_image_hash(img: PIL.Image, hash_size=16, highfreq_factor=4) -> ImageHash:
     return phash(img, hash_size=hash_size, highfreq_factor=highfreq_factor)
+
 
 class CompareResult(enum.IntEnum):
     DIFF = 0
     ALMOST_SAME = 1
     SAME = 2
+
 
 def compare_two_hash(hash_1: bytes, hash_2: bytes) -> t.Tuple[CompareResult, float]:
     hash_1, hash_2 = hex_to_hash(hash_1), hex_to_hash(hash_2)
