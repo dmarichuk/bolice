@@ -16,4 +16,4 @@ def translate_seconds_to_timer(n: int):
         raise ExceedTranslationLimit(f"{n} is greater than an hour")
     minute = n // 60
     seconds = n % 60
-    return f"{minute}:{seconds}"
+    return "{}:{}".format(str(minute).zfill(2), str(seconds).zfill(2))
