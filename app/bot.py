@@ -73,7 +73,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     )
     await client.send_photo(
         chat_id,
-        photo="./app/static/bolice.jpg",
+        photo="./static/bolice.jpg",
         caption="🚨🚨 ЗАМЕЧЕН БАЯН! 🚨🚨",
         reply_to_message_id=bayan_msg.id,
     )
@@ -122,7 +122,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         )
         await bot_app.send_photo(
             chat_id,
-            "./app/static/punish.jpg",
+            "./static/punish.jpg",
             reply_to_message_id=updated_poll.id,
             caption=f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ! ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}",
         )
@@ -138,7 +138,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         )
         await bot_app.send_photo(
             chat_id,
-            "./app/static/justified.jpg",
+            "./static/justified.jpg",
             reply_to_message_id=updated_poll.id,
             caption="ПОЛНОСТЬЮ ОПРАВДАН!",
         )
