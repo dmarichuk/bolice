@@ -39,7 +39,7 @@ jobs:
               # deploy on docker
               docker compose down && \
               docker compose up --build -d && \
-              docker compose logs -f app >> ./logs/app.log
+              docker compose logs -f app >> app.log
 
     send_message:
       runs-on: ubuntu-latest
