@@ -22,6 +22,6 @@ COPY --from=requirements-stage /tmp/requirements.txt /workspace/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 COPY ./app/static/ ./
-COPY  ./app/ ./
+COPY ./app/ ./
 
 CMD ["python3", "bot.py"]
