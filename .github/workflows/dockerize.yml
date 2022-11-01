@@ -1,0 +1,43 @@
+name: Dockerize Bot
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+    deploy:
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Command to deploy
+        - uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.SSH_USER }}
+            port: ${{ secrets.SSH_PORT }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            script: |
+              touch .env \
+              echo TELEGRAM_API_ID=${{ TELEGRAM_API_ID }} >> .env \
+              echo TELEGRAM_API_HASH=${{ TELEGRAM_API_HASH }} >> .env \
+              echo TELEGRAM_BOT_TOKEN=${{ TELEGRAM_BOT_TOKEN }} >> .env \
+              echo D_DISK_CHAT_ID=${{ D_DSIK_CHAT_ID }} >> .env \
+              echo MONGO_INITDB_ROOT_USERNAME = ${{ MONGO_INITDB_ROOT_USERNAME }} >> .env \
+              echo MONGO_INITDB_ROOT_PASSWORD = ${{ MONGO_INITDB_ROOT_PASSWORD }} >> .env \
+
+              sudo docker compose down && \
+              sudo docker compose up --build -d && \
+              sudo docker compose logs -f app > ./logs/app.log
+
+    send_message:
+      runs-on: ubuntu-latest
+      needs: deploy
+    
+      steps:
+        - name: Send message
+          uses: appleboy/telegram-action@master
+          with:
+            to: ${{ secrets.TELEGRAM_DEV_CHAT_ID }}
+            token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+            message: Workflow "${{ github.workflow }}" в ${{ github.repository }} успешно выполнен!
