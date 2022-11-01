@@ -20,7 +20,9 @@ jobs:
             port: ${{ secrets.SSH_PORT }}
             password: ${{ secrets.SSH_PASSWORD }}
             script: |
+              rm .-f env && \
               touch .env && \
+              chown ${{ secrets.SSH_USER }} .env && \
               echo TELEGRAM_API_ID=${{ secrets.TELEGRAM_API_ID }} >> .env && \
               echo TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }} >> .env && \
               echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env && \
