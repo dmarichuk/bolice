@@ -1,6 +1,8 @@
 name: Dockerize Bot
 
 on:
+  push:
+    branches: [ "main"]
   pull_request:
     branches: [ "main" ]
 
