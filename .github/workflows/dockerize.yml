@@ -20,17 +20,17 @@ jobs:
             port: ${{ secrets.SSH_PORT }}
             password: ${{ secrets.SSH_PASSWORD }}
             script: |
-              touch .env \
-              echo TELEGRAM_API_ID=${{ secrets.TELEGRAM_API_ID }} >> .env \
-              echo TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }} >> .env \
-              echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env \
-              echo D_DISK_CHAT_ID=${{ secrets.D_DSIK_CHAT_ID }} >> .env \
-              echo MONGO_INITDB_ROOT_USERNAME = ${{ secrets.MONGO_INITDB_ROOT_USERNAME }} >> .env \
-              echo MONGO_INITDB_ROOT_PASSWORD = ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} >> .env \
+              touch .env && \
+              echo TELEGRAM_API_ID=${{ secrets.TELEGRAM_API_ID }} >> .env && \
+              echo TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }} >> .env && \
+              echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env && \
+              echo D_DISK_CHAT_ID=${{ secrets.D_DSIK_CHAT_ID }} >> .env && \
+              echo MONGO_INITDB_ROOT_USERNAME = ${{ secrets.MONGO_INITDB_ROOT_USERNAME }} >> .env && \
+              echo MONGO_INITDB_ROOT_PASSWORD = ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} >> .env && \
 
-              sudo docker compose down && \
-              sudo docker compose up --build -d && \
-              sudo docker compose logs -f app > ./logs/app.log
+              docker compose down && \
+              docker compose up --build -d && \
+              docker compose logs -f app >> ./logs/app.log
 
     send_message:
       runs-on: ubuntu-latest
