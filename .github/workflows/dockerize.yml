@@ -25,6 +25,7 @@ jobs:
               git pull origin main --rebase
               
               # creating env file
+              cd ./app/ && \
               rm -f .env && \
               touch .env && \
               chmod 777 .env && \
