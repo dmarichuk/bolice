@@ -4,7 +4,16 @@ services:
     restart: always
     env_file:
       - "./app/.env"
-    ports:
-      - 27017:27017
+    expose:
+      - 27017
     volumes:
       - ./db_data/db:/data/db
+  
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+    env_file:
+      - "./app/.env"
