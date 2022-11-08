@@ -38,7 +38,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "pillow"
-version = "9.2.0"
+version = "9.3.0"
 description = "Python Imaging Library (Fork)"
 category = "main"
 optional = false
@@ -154,7 +154,7 @@ test = ["flake8 (>=3.9.2,<3.10.0)", "psutil", "pycodestyle (>=2.7.0,<2.8.0)", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "90604b16ab440bf67e0f29179f26fd90e2eea2bacec13bd4e4c5f19964414344"
+content-hash = "b7689eecf5d46e8cdb34fc8f1a35da0f9a16b9ea9382e14d9be7c1ebf8ecc493"
 
 [metadata.files]
 dnspython = [
