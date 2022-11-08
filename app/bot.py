@@ -203,7 +203,7 @@ async def parse_chat_photos(client, chat_id):
                             "img_hash": str(hash),
                             "message_id": msg.id,
                             "file_id": msg.photo.file_id,
-                            "active": True,
+                            "is_active": True,
                         }
                     )
                     logger.info(f"Inserted document {doc.inserted_id} to db")

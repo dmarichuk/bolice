@@ -27,13 +27,15 @@ jobs:
               rm -f .env && \
               touch .env && \
               chmod 777 .env && \
+              echo BUILD_TYPE=PROD >> .env && \
               echo TELEGRAM_API_ID=${{ secrets.TELEGRAM_API_ID }} >> .env && \
               echo TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }} >> .env && \
               echo TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} >> .env && \
               echo D_DISK_CHAT_ID=${{ secrets.D_DISK_CHAT_ID }} >> .env && \
               echo MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} >> .env && \
               echo MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} >> .env && \
-              
+              echo MONGO_HOST=mongodb >> .env
+
               # deploy on docker
               docker compose down && \
               docker compose up --build -d & \
