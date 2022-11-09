@@ -8,11 +8,13 @@ from app.hash import (CompareResult, compare_two_hash, get_image_hash,
 
 class TestHash(unittest.TestCase):
     def setUp(self):
-        self.img_1 = open("./tests/test_images/test_image_1.1.jpg", "rb")
-        self.img_2 = open("./tests/test_images/test_image_1.2.jpg", "rb")
+        self.img_1 = open("./tests/test_images/test_image_3.1.jpg", "rb")
+        self.img_2 = open("./tests/test_images/test_image_3.2.jpg", "rb")
         self.img_3 = open("./tests/test_images/test_image_2.1.jpg", "rb")
         self.img_4 = open("./tests/test_images/test_image_2.2.jpg", "rb")
         self.img_5 = open("./tests/test_images/test_image_2.3.jpg", "rb")
+        self.img_6 = open("./tests/test_images/test_image_1.1.jpg", "rb")
+        self.img_7 = open("./tests/test_images/test_image_1.2.jpg", "rb")
 
     def test_not_image(self):
         not_image = open("./tests/test_images/not_image.txt", "rb")
@@ -24,15 +26,15 @@ class TestHash(unittest.TestCase):
 
     def test_same_image(self):
         img_1_hash_1 = get_image_hash(init_image(self.img_1))
-        img_1_hash_2 = get_image_hash(init_image(self.img_1))
+        img_1_hash_2 = get_image_hash(init_image(self.img_2))
         comparison, diff = compare_two_hash(str(img_1_hash_1), str(img_1_hash_2))
 
         print(f"DIFF IN SAME IMAGE = ", diff)
         self.assertEqual(comparison, CompareResult.SAME)
 
     def test_diff_image(self):
-        img_1_hash = get_image_hash(init_image(self.img_1))
-        img_2_hash = get_image_hash(init_image(self.img_2))
+        img_1_hash = get_image_hash(init_image(self.img_6))
+        img_2_hash = get_image_hash(init_image(self.img_7))
         comparison, diff = compare_two_hash(str(img_1_hash), str(img_2_hash))
 
         print(f"DIFF IN DIFF IMAGE = ", diff)
@@ -60,6 +62,8 @@ class TestHash(unittest.TestCase):
         self.img_3.close()
         self.img_4.close()
         self.img_5.close()
+        self.img_6.close()
+        self.img_7.close()
 
 
 if __name__ == "__main__":

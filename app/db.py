@@ -1,4 +1,4 @@
-from config import MONGO_PASSWORD, MONGO_USERNAME, MONGO_HOST
+from config import MONGO_HOST, MONGO_PASSWORD, MONGO_USERNAME
 from pymongo import MongoClient, cursor
 
 MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:27017"
