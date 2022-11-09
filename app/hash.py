@@ -2,7 +2,8 @@ import enum
 import typing as t
 
 import PIL
-from imagehash import ImageHash, average_hash, hex_to_hash, phash, whash
+from imagehash import (ImageHash, average_hash, hex_to_hash, phash,
+                       phash_simple, whash)
 from utils import get_custom_logger
 
 logger = get_custom_logger("hash")

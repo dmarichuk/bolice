@@ -24,4 +24,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 COPY ./app/static/ ./
 COPY ./app/ ./
 
-CMD ["python3", "bot.py"]
+CMD ["python3", "main.py"]

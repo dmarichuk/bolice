@@ -2,64 +2,15 @@ import asyncio
 import datetime as dt
 import random
 
-import uvloop
-from config import (D_DISK_CHAT_ID, TELEGRAM_API_HASH, TELEGRAM_API_ID,
-                    TELEGRAM_BOT_TOKEN)
+from config import D_DISK_CHAT_ID
 from db import MongoConnection
 from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
-from pyrogram import Client, filters
+from pyrogram import Client
 from pyrogram import types as pt
 from utils import get_custom_logger, translate_seconds_to_timer
 
 logger = get_custom_logger("bot")
-uvloop.install()
-
-user_app = Client("bolice_user", api_id=TELEGRAM_API_ID, api_hash=TELEGRAM_API_HASH)
-
-bot_app = Client(
-    "bolice_bot",
-    api_id=TELEGRAM_API_ID,
-    api_hash=TELEGRAM_API_HASH,
-    bot_token=TELEGRAM_BOT_TOKEN,
-    in_memory=True,
-)
-
-
-@bot_app.on_message(filters.photo)
-async def photo_handler(client: Client, message: pt.Message):
-    f = await client.download_media(message.photo, in_memory=True)
-    # logger.info(f"Recieved photo from user {message.from_user.id} in chat {message.chat.id}")
-
-    img = init_image(f)
-    if not img:
-        logger.warning("Could not initialize PIL.Image from Telegram photo")
-        return
-    logger.info("Initialized PIL.Image from telegram photo")
-
-    hash = get_image_hash(img)
-    logger.info(f"Obtained image hash: {str(hash)}")
-
-    conn = MongoConnection()
-    col = conn[str(message.chat.id)]
-
-    try:
-        doc = col.insert_one(
-            {
-                "img_hash": str(hash),
-                "message_id": message.id,
-                "file_id": message.photo.file_id,
-                "is_active": True,
-            }
-        )
-        logger.info(f"Inserted document {doc.inserted_id} to db")
-    except mongo_errors.DuplicateKeyError:
-        if col.find_one({"img_hash": str(hash), "is_active": True}):
-            logger.warning("Hash already in DB")
-            orig_doc = col.find_one({"img_hash": str(hash)})
-            await activate_bolice(client, message.chat.id, message, orig_doc)
-        else:
-            logger.info(f"Hash {hash} is deactivated")
 
 
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
@@ -80,7 +31,6 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     await client.send_message(
         chat_id, reply_to_message_id=orig_doc["message_id"], text="Оригинал"
     )
-
     logger.info("Poll is activated")
     countdown = 300
     poll = await client.send_poll(
@@ -111,43 +61,81 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
             [[pt.InlineKeyboardButton("Голосование завершено!", "void")]]
         ),
     )
-    updated_poll = await bot_app.get_messages(chat_id, poll.id)
+    updated_poll = await client.get_messages(chat_id, poll.id)
     pro, contra = [option.voter_count for option in updated_poll.poll.options]
     logger.info(f"Poll is closed. PRO {pro}, CONTRA {contra}")
+    sender = define_user_from_message(bayan_msg)
+    if sender is not None:
+        logger.info(f"Bayan sender - {sender}")
+        is_executed = await activate_execution(
+            client,
+            chat_id,
+            sender,
+            pro,
+            contra,
+            "ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ!",
+            "ПОЛНОСТЬЮ ОПРАВДАН",
+            updated_poll,
+        )
+        if not is_executed:
+            conn = MongoConnection()
+            col = conn[str(chat_id)]
+            updated_doc = col.find_one_and_update(
+                {"img_hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}}
+            )
+            logger.info(f"Deactivated document {updated_doc['_id']}")
+    else:
+        logger.error(f"Sender is None from message {bayan_msg}")
 
+
+def define_user_from_message(msg: pt.Message) -> pt.User | pt.Chat:
+    if msg.from_user:
+        return msg.from_user
+    if msg.sender_chat:
+        return msg.sender_chat
+    return None
+
+
+async def activate_execution(
+    client: Client,
+    chat_id: int,
+    user: pt.User | pt.Chat,
+    pro: int,
+    contra: int,
+    punishment_caption: str | None = None,
+    justified_caption: str | None = None,
+    reply_to: pt.Message | None = None,
+) -> bool:
     guilty, punishment_time = execute_sentence(pro, contra)
     if guilty:
-        logger.info(
-            f"{bayan_msg.from_user.id} is guilty. Execute punishment for {punishment_time}"
-        )
-        await bot_app.send_photo(
+        logger.info(f"{user.id} is guilty. Execute punishment for {punishment_time}")
+        await client.send_photo(
             chat_id,
             "./static/punish.jpg",
-            reply_to_message_id=updated_poll.id,
-            caption=f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА БАЯНЫ! ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}",
+            reply_to_message_id=reply_to.id,
+            caption=f"{punishment_caption} ВРЕМЯ ЗАКЛЮЧЕНИЯ - {translate_seconds_to_timer(punishment_time)}",
         )
-        await bot_app.restrict_chat_member(
-            chat_id,
-            bayan_msg.from_user.id,
-            permissions=pt.ChatPermissions(),
-            until_date=dt.datetime.now() + dt.timedelta(seconds=punishment_time),
-        )
+        match user:
+            case pt.User:
+                await client.restrict_chat_member(
+                    chat_id,
+                    user.id,
+                    permissions=pt.ChatPermissions(),
+                    until_date=dt.datetime.now()
+                    + dt.timedelta(seconds=punishment_time),
+                )
+            case pt.Chat:
+                # TODO вывести сообщение что пользователь ускользнул от правосудия под видом канала и предложить ввести команду для бана участника
+                pass
     else:
-        logger.info(
-            f"{bayan_msg.from_user.id} is innocent. Punishment time is {punishment_time}"
-        )
-        await bot_app.send_photo(
+        logger.info(f"{user.id} is innocent. Punishment time is {punishment_time}")
+        await client.send_photo(
             chat_id,
             "./static/justified.jpg",
-            reply_to_message_id=updated_poll.id,
-            caption="ПОЛНОСТЬЮ ОПРАВДАН!",
+            reply_to_message_id=reply_to.id,
+            caption=justified_caption,
         )
-        conn = MongoConnection()
-        col = conn[str(chat_id)]
-        updated_doc = col.find_one_and_update(
-            {"img_hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}}
-        )
-        logger.info(f"Deactivated document {updated_doc['_id']}")
+        return False
 
 
 def execute_sentence(pro, contra):
@@ -180,11 +168,6 @@ async def edit_inline_button_with_void(client, chat_id, msg_id, data):
         msg_id,
         reply_markup=pt.InlineKeyboardMarkup([[pt.InlineKeyboardButton(data, "void")]]),
     )
-
-
-@bot_app.on_callback_query()
-async def void(_, __):
-    pass
 
 
 async def parse_chat_photos(client, chat_id):
@@ -223,15 +206,3 @@ async def parse_chat_photos(client, chat_id):
                     await client.download_media(
                         bayan["file_id"], f"./media/collisions/{dir_name}/"
                     )
-
-
-if __name__ == "__main__":
-    import io
-    import sys
-
-    if len(sys.argv) == 1 or sys.argv[1] == "run_bot":
-        bot_app.run()
-    elif sys.argv[1] == "parse_d_disk":
-        user_app.run(parse_chat_photos(user_app, D_DISK_CHAT_ID))
-    else:
-        sys.stderr.write(f"Can't parse argument {sys.argv[1]!r}\n")
