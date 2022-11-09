@@ -14,14 +14,7 @@ logger = get_custom_logger("bot")
 
 
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
-    logger.info(
-        "Bolice activated in chat",
-        chat_id,
-        "MSG_ID",
-        bayan_msg.id,
-        "DOC ID",
-        orig_doc["_id"],
-    )
+    logger.info(f"Bolice activated in chat {chat_id}. Message id {bayan_msg.id}, Document id {orig_doc['_id']}")
     await client.send_photo(
         chat_id,
         photo="./static/bolice.jpg",
