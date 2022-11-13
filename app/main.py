@@ -84,7 +84,7 @@ async def search_handler(client: Client, message: pt.Message):
     await message.reply("Похожих картинок не обнаружено!")
 
 
-@bot_app.on_message(filters.photo)
+@bot_app.on_message(filters.photo & ~filters.forwarded)
 async def photo_handler(client: Client, message: pt.Message):
     f = await client.download_media(message.photo, in_memory=True)
 
