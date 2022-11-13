@@ -1,5 +1,6 @@
 import logging
 
+
 LOGGER_FORMAT = (
     "%(asctime)s - [%(levelname)s]::[%(name)s -> %(funcName)s] || %(message)s"
 )
@@ -18,7 +19,7 @@ class ExceedTranslationLimit(Exception):
     pass
 
 
-def translate_seconds_to_timer(n: int):
+def translate_seconds_to_timer(n: int) -> str:
     if n >= 60 * 60:
         raise ExceedTranslationLimit(f"{n} is greater than an hour")
     minute = n // 60

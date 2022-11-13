@@ -28,13 +28,13 @@ class CompareResult(enum.IntEnum):
     SAME = 2
 
 
-def compare_two_hash(hash_1: bytes, hash_2: bytes) -> t.Tuple[CompareResult, float]:
+def compare_two_hash(hash_1: str, hash_2: str) -> t.Tuple[CompareResult, float]:
     hash_1, hash_2 = hex_to_hash(hash_1), hex_to_hash(hash_2)
     comparison = (hash_1 - hash_2) / len(hash_1.hash) ** 2
 
     if comparison == 0:
         r = CompareResult.SAME
-    elif comparison < 0.1:
+    elif comparison <= 0.25:
         r = CompareResult.ALMOST_SAME
     else:
         r = CompareResult.DIFF
