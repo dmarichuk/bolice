@@ -17,3 +17,5 @@ services:
       - mongodb
     env_file:
       - "./app/.env"
+    volumes:
+      - ./logs/:/logs/

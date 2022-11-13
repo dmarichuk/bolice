@@ -5,3 +5,5 @@ db_data/
 media/
 *.session
 *.session-journal
+logs/
+*.log
