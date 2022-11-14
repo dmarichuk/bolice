@@ -1,11 +1,15 @@
 import asyncio
+import concurrent.futures
 import datetime as dt
 import random
+import typing as t
+from traceback import extract_tb
 
 from config import D_DISK_CHAT_ID
 from db import MongoConnection
-from hash import get_image_hash, init_image
+from hash import CompareResult, compare_two_hash, get_image_hash, init_image
 from pymongo import errors as mongo_errors
+from pymongo.cursor import Cursor
 from pyrogram import Client
 from pyrogram import types as pt
 from utils import get_custom_logger, translate_seconds_to_timer
@@ -14,7 +18,9 @@ logger = get_custom_logger("bot")
 
 
 async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
-    logger.info(f"Bolice activated in chat {chat_id}. Message id {bayan_msg.id}, Document id {orig_doc['_id']}")
+    logger.info(
+        f"Bolice activated in chat {chat_id}. Message id {bayan_msg.id}, Document id {orig_doc['_id']}"
+    )
     await client.send_photo(
         chat_id,
         photo="./static/bolice.jpg",
@@ -199,3 +205,34 @@ async def parse_chat_photos(client, chat_id):
                     await client.download_media(
                         bayan["file_id"], f"./media/collisions/{dir_name}/"
                     )
+
+
+async def search_for_similarity(suspect_hash: str, search_documents: Cursor):
+    futs = list()
+    with concurrent.futures.ProcessPoolExecutor() as pool:
+        for doc in search_documents:
+            futs.append(
+                (
+                    pool.submit(check_image_similarity, suspect_hash, doc["img_hash"]),
+                    doc,
+                )
+            )
+
+    similar_photos = list()
+    for fut, doc in futs:
+        try:
+            r = fut.result()
+            is_similar, proximity = r
+            if is_similar:
+                similar_photos.append((proximity, doc["message_id"]))
+        except Exception as e:
+            logger.error(extract_tb(e))
+            continue
+    return similar_photos
+
+
+def check_image_similarity(img_hash_1: str, img_hash_2: str) -> t.Tuple[bool, float]:
+    r, s = compare_two_hash(img_hash_1, img_hash_2)
+    if r in {CompareResult.ALMOST_SAME, CompareResult.SAME}:
+        return True, s
+    return False, s
