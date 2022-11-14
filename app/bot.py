@@ -224,7 +224,7 @@ async def search_for_similarity(suspect_hash: str, search_documents: Cursor):
             r = fut.result()
             is_similar, proximity = r
             if is_similar:
-                similar_photos.append((proximity, doc["message_id"]))
+                similar_photos.append((proximity, doc["message_id"], doc["is_active"]))
         except Exception as e:
             logger.error(extract_tb(e))
             continue

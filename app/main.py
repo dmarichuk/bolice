@@ -46,7 +46,7 @@ async def search_handler(client: Client, message: pt.Message):
         )
 
     hash_to_search = suspected_doc["img_hash"]
-    cursor = col.find({"is_active": True})
+    cursor = col.find()
 
     logger.info("Started to look for a similar hash...")
 
@@ -73,10 +73,13 @@ async def search_handler(client: Client, message: pt.Message):
     )
 
     if len(similarities) > 0:
-        for proximity, similarity_msg_id in similarities:
+        for proximity, similarity_msg_id, is_active in similarities:
+            msg = f"Схожесть: {(100 - proximity):.2f}%"
+            if not is_active:
+                msg += "\nСтатус: Деактивирована"
             await client.send_message(
                 message.chat.id,
-                f"Схожесть: {(100 - proximity):.2}%",
+                msg,
                 reply_to_message_id=similarity_msg_id,
             )
         return
