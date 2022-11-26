@@ -77,8 +77,8 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
             updated_poll,
         )
         if not is_executed:
-            conn = MongoConnection()
-            col = conn[str(chat_id)]
+            conn = MongoConnection(str(chat_id))
+            col = conn.get_history_collection()
             updated_doc = col.find_one_and_update(
                 {"img_hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}}
             )
@@ -170,8 +170,8 @@ async def edit_inline_button_with_void(client, chat_id, msg_id, data):
 
 
 async def parse_chat_photos(client, chat_id):
-    conn = MongoConnection()
-    col = conn[str(chat_id)]
+    conn = MongoConnection(str(chat_id))
+    col = conn.get_history_collection()
 
     async with client:
         async for msg in client.get_chat_history(chat_id):
