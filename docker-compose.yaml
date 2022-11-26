@@ -6,6 +6,8 @@ services:
       - "./app/.env"
     expose:
       - 27017
+    ports:
+      - "27017:27017"
     volumes:
       - ./db_data/db:/data/db
   

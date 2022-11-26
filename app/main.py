@@ -28,7 +28,7 @@ bot_app = Client(
 
 @bot_app.on_message(filters.regex("!поиск"))
 async def search_handler(client: Client, message: pt.Message):
-    if not message.reply_to_message_id:
+    if not message.reply_to_message_id or message.reply_to_message.forward_date:
         return await message.reply(
             "Для выполнения поиска, введите команду в ответ на сообщение с возможным баяном"
         )
@@ -36,9 +36,8 @@ async def search_handler(client: Client, message: pt.Message):
     if not message.reply_to_message.photo:
         return await message.reply("В прикрепленном сообщении нет фото!")
 
-    conn = MongoConnection()
-    col = conn[str(message.chat.id)]
-
+    conn = MongoConnection(str(message.chat.id))
+    col = conn.get_history_collection()
     suspected_doc = col.find_one({"message_id": message.reply_to_message_id})
     if not suspected_doc:
         return await message.reply(
@@ -87,7 +86,10 @@ async def search_handler(client: Client, message: pt.Message):
     await message.reply("Похожих картинок не обнаружено!")
 
 
-@bot_app.on_message(filters.photo & ~filters.forwarded)
+@bot_app.on_message(
+    (filters.photo & filters.linked_channel) # Photos redirected from linked channel
+    | (filters.photo & ~filters.forwarded & ~filters.channel) # Photos from users in channel chat
+)
 async def photo_handler(client: Client, message: pt.Message):
     f = await client.download_media(message.photo, in_memory=True)
 
@@ -100,8 +102,10 @@ async def photo_handler(client: Client, message: pt.Message):
     hash = get_image_hash(img)
     logger.info(f"Obtained image hash: {str(hash)}")
 
-    conn = MongoConnection()
-    col = conn[str(message.chat.id)]
+    conn = MongoConnection(str(message.chat.id))
+    col = conn.get_history_collection()
+
+    logger.info(f"ADDING MESSAGE {message}")
 
     try:
         doc = col.insert_one(

@@ -5,15 +5,15 @@ MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:2701
 
 
 class MongoConnection:
-    def __init__(self):
-        self.client = self._get_client()
+    def __init__(self, chat_id):
+        self.client = self._get_client(chat_id)
 
-    def _get_client(self):
+    def _get_client(self, chat_id):
         client = MongoClient(MONGO_CONN_STR)
-        return client["bolice"]
+        return client[chat_id]
 
-    def __getitem__(self, col_name: str) -> cursor.Cursor:
-        col = self.client[col_name]
+    def get_history_collection(self):
+        col = self.client["history"]
         if len(list(col.list_indexes())) < 2:
             col.create_index([("img_hash", 1)], unique=True)
             col.create_index([("img_hash", 1), ("is_active", 1)])
