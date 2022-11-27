@@ -87,8 +87,11 @@ async def search_handler(client: Client, message: pt.Message):
 
 
 @bot_app.on_message(
-    (filters.photo & filters.linked_channel) # Photos redirected from linked channel
-    | (filters.photo & ~filters.forwarded & ~filters.channel) # Photos from users in channel chat
+    ~filters.me
+    & (
+        (filters.photo & filters.linked_channel) # Photos redirected from linked channel
+        | (filters.photo & ~filters.forwarded & ~filters.channel) # Photos from users in channel chat
+    )
 )
 async def photo_handler(client: Client, message: pt.Message):
     f = await client.download_media(message.photo, in_memory=True)
@@ -104,8 +107,6 @@ async def photo_handler(client: Client, message: pt.Message):
 
     conn = MongoConnection(str(message.chat.id))
     col = conn.get_history_collection()
-
-    logger.info(f"ADDING MESSAGE {message}")
 
     try:
         doc = col.insert_one(
