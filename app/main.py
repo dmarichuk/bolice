@@ -28,7 +28,7 @@ bot_app = Client(
 
 @bot_app.on_message(filters.regex("!поиск"))
 async def search_handler(client: Client, message: pt.Message):
-    if not message.reply_to_message_id or message.reply_to_message.forward_date:
+    if not message.reply_to_message_id:
         return await message.reply(
             "Для выполнения поиска, введите команду в ответ на сообщение с возможным баяном"
         )
