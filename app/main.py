@@ -1,15 +1,18 @@
 import asyncio
 
 import uvloop
-from bot import (activate_bolice, edit_inline_button_with_void,
-                 parse_chat_photos, search_for_similarity)
-from config import (D_DISK_CHAT_ID, TELEGRAM_API_HASH, TELEGRAM_API_ID,
-                    TELEGRAM_BOT_TOKEN)
-from db import MongoConnection
-from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
 from pyrogram import Client, filters
 from pyrogram import types as pt
+
+from bot.common import edit_inline_button_with_void
+from bot.parse import parse_chat_photos
+from bot.punish import activate_bolice
+from bot.search import search_for_similarity
+from config import (BASE_DIR, D_DISK_CHAT_ID, TELEGRAM_API_HASH,
+                    TELEGRAM_API_ID, TELEGRAM_BOT_TOKEN)
+from db import MongoConnection
+from hash import get_image_hash, init_image
 from utils import get_custom_logger
 
 logger = get_custom_logger("main")
@@ -37,8 +40,8 @@ async def search_handler(client: Client, message: pt.Message):
         return await message.reply("В прикрепленном сообщении нет фото!")
 
     conn = MongoConnection(str(message.chat.id))
-    col = conn.get_history_collection()
-    suspected_doc = col.find_one({"message_id": message.reply_to_message_id})
+    col = await conn.get_history_collection()
+    suspected_doc = await col.find_one({"message_id": message.reply_to_message_id})
     if not suspected_doc:
         return await message.reply(
             "Не могу найти это сообщение в базе! Пишите админу(он вряд ли ответит)"
@@ -73,7 +76,13 @@ async def search_handler(client: Client, message: pt.Message):
 
     if len(similarities) > 0:
         for proximity, similarity_msg_id, is_active in similarities:
-            msg = f"Схожесть: {(100 - proximity):.2f}%"
+            if proximity == 0:
+                similarity = "оригинал"
+            elif proximity < 0.01:
+                similarity = "99.99%"
+            else:
+                similarity = f"{(100 - proximity):.2f}%"
+            msg = f"Схожесть: {similarity}"
             if not is_active:
                 msg += "\nСтатус: Деактивирована"
             await client.send_message(
@@ -89,8 +98,12 @@ async def search_handler(client: Client, message: pt.Message):
 @bot_app.on_message(
     ~filters.me
     & (
-        (filters.photo & filters.linked_channel) # Photos redirected from linked channel
-        | (filters.photo & ~filters.forwarded & ~filters.channel) # Photos from users in channel chat
+        (
+            filters.photo & filters.linked_channel
+        )  # Photos redirected from linked channel
+        | (
+            filters.photo & ~filters.forwarded & ~filters.channel
+        )  # Photos from users in channel chat
     )
 )
 async def photo_handler(client: Client, message: pt.Message):
@@ -106,10 +119,10 @@ async def photo_handler(client: Client, message: pt.Message):
     logger.info(f"Obtained image hash: {str(hash)}")
 
     conn = MongoConnection(str(message.chat.id))
-    col = conn.get_history_collection()
+    col = await conn.get_history_collection()
 
     try:
-        doc = col.insert_one(
+        doc = await col.insert_one(
             {
                 "img_hash": str(hash),
                 "message_id": message.id,
@@ -119,9 +132,10 @@ async def photo_handler(client: Client, message: pt.Message):
         )
         logger.info(f"Inserted document {doc.inserted_id} to db")
     except mongo_errors.DuplicateKeyError:
-        if col.find_one({"img_hash": str(hash), "is_active": True}):
+        active = await col.find_one({"img_hash": str(hash), "is_active": True})
+        if active:
             logger.warning("Hash already in DB")
-            orig_doc = col.find_one({"img_hash": str(hash)})
+            orig_doc = await col.find_one({"img_hash": str(hash)})
             await activate_bolice(client, message.chat.id, message, orig_doc)
         else:
             logger.info(f"Hash {hash} is deactivated")
@@ -135,9 +149,12 @@ async def void(_, __):
 if __name__ == "__main__":
     import sys
 
+    sys.path.append(BASE_DIR)
+
     if len(sys.argv) == 1 or sys.argv[1] == "run_bot":
         bot_app.run()
-    elif sys.argv[1] == "parse_d_disk":
-        user_app.run(parse_chat_photos(user_app, D_DISK_CHAT_ID))
+    elif len(sys.argv) == 3 and sys.argv[1] == "parse_chat":
+        chat_id = int(sys.argv[2])
+        user_app.run(parse_chat_photos(user_app, chat_id))
     else:
         sys.stderr.write(f"Can't parse argument {sys.argv[1]!r}\n")

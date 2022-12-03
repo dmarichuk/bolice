@@ -1,4 +1,5 @@
 import logging
+
 from config import BUILD_TYPE
 
 LOGGER_FORMAT = (
@@ -13,18 +14,6 @@ def get_custom_logger(
     logger.setLevel(lvl)
     if BUILD_TYPE == "PROD":
         logging.basicConfig(filename="/logs/bot.log", format=format, level=lvl)
-    else:    
+    else:
         logging.basicConfig(format=format, level=lvl)
     return logger
-
-
-class ExceedTranslationLimit(Exception):
-    pass
-
-
-def translate_seconds_to_timer(n: int) -> str:
-    if n >= 60 * 60:
-        raise ExceedTranslationLimit(f"{n} is greater than an hour")
-    minute = n // 60
-    seconds = n % 60
-    return "{}:{}".format(str(minute).zfill(2), str(seconds).zfill(2))
