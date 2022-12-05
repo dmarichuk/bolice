@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from decouple import config
 
+BASE_DIR = Path.cwd()
 BUILD_TYPE = config("BUILD_TYPE")
 
 match BUILD_TYPE:
@@ -7,12 +10,15 @@ match BUILD_TYPE:
         TELEGRAM_API_ID = config("DEV_TELEGRAM_API_ID", cast=int)
         TELEGRAM_API_HASH = config("DEV_TELEGRAM_API_HASH")
         TELEGRAM_BOT_TOKEN = config("DEV_TELEGRAM_BOT_TOKEN")
+        DEV_CHAT = config("DEV_CHAT", cast=int)
     case "PROD":
         TELEGRAM_API_ID = config("TELEGRAM_API_ID", cast=int)
         TELEGRAM_API_HASH = config("TELEGRAM_API_HASH")
         TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
 
-D_DISK_CHAT_ID = config("D_DISK_CHAT_ID")
+D_DISK_CHAT_ID = config("D_DISK_CHAT_ID", cast=int)
 MONGO_USERNAME = config("MONGO_INITDB_ROOT_USERNAME")
 MONGO_PASSWORD = config("MONGO_INITDB_ROOT_PASSWORD")
 MONGO_HOST = config("MONGO_HOST")
+
+POLL_TIMER = 30
