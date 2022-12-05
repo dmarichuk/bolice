@@ -3,15 +3,14 @@ import datetime as dt
 import random
 import typing as t
 
+from config import POLL_TIMER
+from db import MongoConnection
 from pyrogram import Client
 from pyrogram import types as pt
-
-from db import MongoConnection
 from utils import get_custom_logger, translate_seconds_to_timer
-from config import POLL_TIMER
 
+from .common import define_user_from_message, edit_inline_button_with_void
 from .users import User
-from .common import (define_user_from_message, edit_inline_button_with_void)
 
 logger = get_custom_logger("bot__punish")
 
@@ -31,10 +30,12 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     )
 
     sender = define_user_from_message(bayan_msg)
-    is_executed = True 
+    is_executed = True
     match type(sender):
         case pt.User:
-            is_executed = await get_judgment_poll(client, chat_id, sender, "БАЯН", POLL_TIMER)
+            is_executed = await get_judgment_poll(
+                client, chat_id, sender, "БАЯН", POLL_TIMER
+            )
         case pt.Chat:
             pass
         case _:

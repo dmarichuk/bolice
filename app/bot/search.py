@@ -2,9 +2,8 @@ import concurrent.futures
 import typing as t
 from traceback import extract_tb
 
-from motor.motor_asyncio import AsyncIOMotorCursor
-
 from hash import CompareResult, compare_two_hash
+from motor.motor_asyncio import AsyncIOMotorCursor
 from utils import get_custom_logger
 
 logger = get_custom_logger("bot__search")

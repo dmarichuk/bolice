@@ -15,8 +15,12 @@ class TestHash(unittest.TestCase):
         self.img_5 = open("./tests/test_images/test_image_2.3.jpg", "rb")
         self.img_6 = open("./tests/test_images/test_image_1.1.jpg", "rb")
         self.img_7 = open("./tests/test_images/test_image_1.2.jpg", "rb")
-        self.almost_same_img_3_1 = open("./tests/test_images/almost_same_image_1.jpg", "rb")
-        self.almost_same_img_3_2 = open("./tests/test_images/almost_same_image_2.jpg", "rb")
+        self.almost_same_img_3_1 = open(
+            "./tests/test_images/almost_same_image_1.jpg", "rb"
+        )
+        self.almost_same_img_3_2 = open(
+            "./tests/test_images/almost_same_image_2.jpg", "rb"
+        )
 
     def test_not_image(self):
         not_image = open("./tests/test_images/not_image.txt", "rb")
