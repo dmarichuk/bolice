@@ -5,8 +5,6 @@ from db import MongoConnection
 from hash import get_image_hash, init_image
 from utils import get_custom_logger
 
-from .common import translate_seconds_to_timer
-
 logger = get_custom_logger("bot__parse")
 
 
@@ -23,7 +21,7 @@ async def parse_chat_photos(client: Client, chat_id: int):
                 try:
                     doc = await col.insert_one(
                         {
-                            "img_hash": str(hash),
+                            "hash": str(hash),
                             "message_id": msg.id,
                             "file_id": msg.photo.file_id,
                             "is_active": True,
@@ -35,5 +33,5 @@ async def parse_chat_photos(client: Client, chat_id: int):
 
                     logger.info("Updating duplicate image")
                     await col.find_one_and_update(
-                        {"img_hash": str(hash)}, {"$set": {"message_id": msg.id}}
+                        {"hash": str(hash)}, {"$set": {"message_id": msg.id}}
                     )

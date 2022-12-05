@@ -16,7 +16,7 @@ async def search_for_similarity(suspect_hash: str, cursor: AsyncIOMotorCursor):
         async for doc in cursor:
             futs.append(
                 (
-                    pool.submit(check_image_similarity, suspect_hash, doc["img_hash"]),
+                    pool.submit(check_image_similarity, suspect_hash, doc["hash"]),
                     doc,
                 )
             )

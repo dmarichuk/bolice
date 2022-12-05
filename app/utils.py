@@ -1,3 +1,4 @@
+import math
 import logging
 
 from config import BUILD_TYPE
@@ -17,3 +18,15 @@ def get_custom_logger(
     else:
         logging.basicConfig(format=format, level=lvl)
     return logger
+
+
+class ExceedTranslationLimit(Exception):
+    pass
+
+
+def translate_seconds_to_timer(n: int | float) -> str:
+    if n >= 60 * 60:
+        raise ExceedTranslationLimit(f"{n} is greater than an hour")
+    minute = int(n // 60)
+    seconds = int(n % 60)
+    return "{}:{}".format(str(minute).zfill(2), str(seconds).zfill(2))

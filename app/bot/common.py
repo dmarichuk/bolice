@@ -22,15 +22,3 @@ async def edit_inline_button_with_void(
         msg_id,
         reply_markup=pt.InlineKeyboardMarkup([[pt.InlineKeyboardButton(data, "void")]]),
     )
-
-
-class ExceedTranslationLimit(Exception):
-    pass
-
-
-def translate_seconds_to_timer(n: int) -> str:
-    if n >= 60 * 60:
-        raise ExceedTranslationLimit(f"{n} is greater than an hour")
-    minute = n // 60
-    seconds = n % 60
-    return "{}:{}".format(str(minute).zfill(2), str(seconds).zfill(2))

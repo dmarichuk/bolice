@@ -29,6 +29,26 @@ PyWavelets = "*"
 scipy = "*"
 
 [[package]]
+name = "motor"
+version = "3.1.1"
+description = "Non-blocking MongoDB driver for Tornado or asyncio"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pymongo = ">=4.1,<5"
+
+[package.extras]
+aws = ["pymongo[aws] (>=4.1,<5)"]
+encryption = ["pymongo[encryption] (>=4.1,<5)"]
+gssapi = ["pymongo[gssapi] (>=4.1,<5)"]
+ocsp = ["pymongo[ocsp] (>=4.1,<5)"]
+snappy = ["pymongo[snappy] (>=4.1,<5)"]
+srv = ["pymongo[srv] (>=4.1,<5)"]
+zstd = ["pymongo[zstd] (>=4.1,<5)"]
+
+[[package]]
 name = "numpy"
 version = "1.23.4"
 description = "NumPy is the fundamental package for array computing with Python."
@@ -154,7 +174,7 @@ test = ["flake8 (>=3.9.2,<3.10.0)", "psutil", "pycodestyle (>=2.7.0,<2.8.0)", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "b7689eecf5d46e8cdb34fc8f1a35da0f9a16b9ea9382e14d9be7c1ebf8ecc493"
+content-hash = "89e0d8f5e52f66f52730cc2cf0a3203f047c45f6d8054b64f00476caa36d1b44"
 
 [metadata.files]
 dnspython = [
@@ -162,6 +182,7 @@ dnspython = [
     {file = "dnspython-2.2.1.tar.gz", hash = "sha256:0f7569a4a6ff151958b64304071d370daa3243d15941a7beedf0c9fe5105603e"},
 ]
 imagehash = []
+motor = []
 numpy = []
 pillow = []
 pyaes = []

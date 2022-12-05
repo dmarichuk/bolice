@@ -2,7 +2,7 @@ import enum
 import typing as t
 
 import PIL
-from imagehash import ImageHash, hex_to_hash, phash, whash
+from imagehash import ImageHash, hex_to_hash, whash
 
 from utils import get_custom_logger
 
@@ -37,7 +37,7 @@ def compare_two_hash(hash_1: str, hash_2: str) -> t.Tuple[CompareResult, Compari
 
     if comparison == 0:
         r = CompareResult.SAME
-    elif comparison < 0.25:
+    elif comparison < 0.1:
         r = CompareResult.ALMOST_SAME
     else:
         r = CompareResult.DIFF

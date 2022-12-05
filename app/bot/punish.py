@@ -7,10 +7,11 @@ from pyrogram import Client
 from pyrogram import types as pt
 
 from db import MongoConnection
-from utils import get_custom_logger
+from utils import get_custom_logger, translate_seconds_to_timer
+from config import POLL_TIMER
 
-from .common import (define_user_from_message, edit_inline_button_with_void,
-                     translate_seconds_to_timer)
+from .users import User
+from .common import (define_user_from_message, edit_inline_button_with_void)
 
 logger = get_custom_logger("bot__punish")
 
@@ -33,7 +34,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     is_executed = False
     match type(sender):
         case pt.User:
-            is_executed = await get_judgment_poll(client, chat_id, sender, "БАЯН")
+            is_executed = await get_judgment_poll(client, chat_id, sender, "БАЯН", POLL_TIMER)
         case pt.Chat:
             pass
         case _:
@@ -44,16 +45,15 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
         conn = MongoConnection(str(chat_id))
         col = await conn.get_history_collection()
         updated_doc = await col.find_one_and_update(
-            {"img_hash": orig_doc["img_hash"]}, {"$set": {"is_active": False}}
+            {"hash": orig_doc["hash"]}, {"$set": {"is_active": False}}
         )
         logger.info(f"Deactivated document {updated_doc['_id']}")
 
 
 async def get_judgment_poll(
-    client: Client, chat_id: int, defendant: pt.User, accusation: str
+    client: Client, chat_id: int, defendant: User, accusation: str, countdown: int
 ) -> bool:
     logger.info("Poll is activated")
-    countdown = 10
     poll = await client.send_poll(
         chat_id,
         question=f"Обвинение: {accusation}",
@@ -91,17 +91,17 @@ async def get_judgment_poll(
         defendant,
         pro,
         contra,
-        f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА {accusation}!",
+        f"ПРИГОВОРЕН К ЗАКЛЮЧЕНИЮ ЗА {accusation.upper()}!",
         "ПОЛНОСТЬЮ ОПРАВДАН",
         updated_poll,
     )
-    return await is_executed
+    return is_executed
 
 
 async def activate_execution(
     client: Client,
     chat_id: int,
-    user: pt.User | pt.Chat,
+    user: User,
     pro: int,
     contra: int,
     punishment_caption: str | None = None,

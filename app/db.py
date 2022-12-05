@@ -12,13 +12,22 @@ class MongoConnection:
 
     def _get_client(self, chat_id):
         client = motor_aio.AsyncIOMotorClient(MONGO_CONN_STR)
-        return client[chat_id]
+        return client[str(chat_id)]
 
     async def get_history_collection(self):
         col = self.client["history"]
         indexes = await col.index_information()
         if len(indexes) < 2:
-            await col.create_index([("img_hash", 1)], unique=True)
-            await col.create_index([("img_hash", 1), ("is_active", 1)])
+            await col.create_index([("hash", 1)], unique=True)
+            await col.create_index([("hash", 1), ("is_active", 1)])
             await col.create_index([("message_id", 1)])
         return col
+
+    async def get_user_collection(self):
+        col = self.client["users"]
+        indexes = await col.index_information()
+        if len(indexes) < 2:
+            await col.create_index([("username", 1)], unique=True)
+        return col
+
+
