@@ -92,10 +92,10 @@ async def get_user_from_chat(user: pt.User | pt.Chat | str, chat_id: int, client
             user.type = UserType.TG_CHAT.value
         case str:
             username = clean_username(user)
-            user = await client.get_chat_member(chat_id, username)
-            user = User.from_dict(user.__dict__)
+            chat_member = await client.get_chat_member(chat_id, username)
+            user = User.from_dict(chat_member.user.__dict__)
             user.type = UserType.TG_USER.value
-            
+    logger.info(user)
     col = await conn.get_user_collection()
     user_doc = await col.find_one({"username": user.username})
     if user_doc:

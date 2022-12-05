@@ -17,6 +17,9 @@ async def parse_chat_photos(client: Client, chat_id: int):
             if msg.photo:
                 f = await client.download_media(msg.photo, in_memory=True)
                 img = init_image(f)
+                if not img:
+                    logger.error("Couldn't initialize image")
+                    continue
                 hash = get_image_hash(img)
                 try:
                     doc = await col.insert_one(

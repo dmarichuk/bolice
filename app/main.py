@@ -40,8 +40,8 @@ async def trial_handler(client: Client, message: pt.Message):
     match parsed_message:
         case [_, username]:
             accusation = "Плохое поведение"
-        case [_, username, accusation]:
-            pass
+        case [_, username,  *accusation]:
+            accusation = " ".join(accusation)
         case _:
             return await message.reply(
                 "Не могу распознать команду\nВводите команду вида: !суд @username <обвинение>"
