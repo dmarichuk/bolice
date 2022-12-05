@@ -8,6 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorCursor, AsyncIOMotorClient
 from pymongo.errors import DuplicateKeyError
 from db import MongoConnection
 from utils import get_custom_logger
+from config import TRIAL_LIMIT
 
 logger = get_custom_logger("bot__users")
 
@@ -46,6 +47,7 @@ class User:
         col = await conn.get_user_collection()
         try:
             await col.insert_one({
+                "id": self.id,
                 "username": self.username,
                 "tg_type": self.tg_type,
                 "on_trial": self.on_trial,
@@ -55,6 +57,7 @@ class User:
             await col.update_one(
                 {"username": self.username},
                 {"$set": {
+                        "id": self.id,
                         "tg_type": self.tg_type,
                         "on_trial": self.on_trial,
                         "last_poll": self.last_poll
@@ -65,7 +68,7 @@ class User:
     def is_trial_available(self) -> tuple[bool, int]:
         now = dt.datetime.now()
         delta = (now - dt.datetime.fromtimestamp(self.last_poll)).total_seconds()
-        if delta <= 15 * 60:
+        if delta <= TRIAL_LIMIT:
             return False, delta
         return True, delta
 

@@ -124,11 +124,12 @@ async def search_handler(client: Client, message: pt.Message):
     col = await conn.get_history_collection()
     suspected_doc = await col.find_one({"message_id": message.reply_to_message_id})
     if not suspected_doc:
-        return await message.reply(
-            "Не могу найти это сообщение в базе! Пишите админу(он вряд ли ответит)"
-        )
+        logger.info("Message not in database, initializing image")
+        f = await client.download_media(message.reply_to_message.photo, in_memory=True)
+        img = init_image(f)
+        img_hash = get_image_hash(img)
 
-    hash_to_search = suspected_doc["hash"]
+    hash_to_search = suspected_doc["hash"] if suspected_doc else str(img_hash)
     cursor = col.find()
 
     logger.info("Started to look for a similar hash...")

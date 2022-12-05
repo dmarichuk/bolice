@@ -31,7 +31,7 @@ async def activate_bolice(client: Client, chat_id: int, bayan_msg, orig_doc):
     )
 
     sender = define_user_from_message(bayan_msg)
-    is_executed = False
+    is_executed = True 
     match type(sender):
         case pt.User:
             is_executed = await get_judgment_poll(client, chat_id, sender, "БАЯН", POLL_TIMER)

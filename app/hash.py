@@ -2,8 +2,8 @@ import enum
 import typing as t
 
 import PIL
-from imagehash import ImageHash, hex_to_hash, whash
-
+from imagehash import ImageHash, hex_to_hash, whash, phash
+from config import SIMILARITY_LIMIT, HASH_SIZE
 from utils import get_custom_logger
 
 logger = get_custom_logger("hash")
@@ -18,8 +18,8 @@ def init_image(data: t.BinaryIO) -> PIL.Image:
     return img
 
 
-def get_image_hash(img: PIL.Image, hash_size=32) -> ImageHash:
-    return whash(img, hash_size=hash_size)
+def get_image_hash(img: PIL.Image, hash_size=HASH_SIZE) -> ImageHash:
+    return whash(img, hash_size)
 
 
 class CompareResult(enum.IntEnum):
@@ -37,7 +37,7 @@ def compare_two_hash(hash_1: str, hash_2: str) -> t.Tuple[CompareResult, Compari
 
     if comparison == 0:
         r = CompareResult.SAME
-    elif comparison < 0.1:
+    elif comparison <= SIMILARITY_LIMIT:
         r = CompareResult.ALMOST_SAME
     else:
         r = CompareResult.DIFF
