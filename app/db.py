@@ -1,7 +1,6 @@
 import motor.motor_asyncio as motor_aio
-from pymongo import MongoClient, cursor
-
 from config import MONGO_HOST, MONGO_PASSWORD, MONGO_USERNAME
+from pymongo import MongoClient, cursor
 
 MONGO_CONN_STR = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:27017"
 
@@ -29,5 +28,3 @@ class MongoConnection:
         if len(indexes) < 2:
             await col.create_index([("username", 1)], unique=True)
         return col
-
-

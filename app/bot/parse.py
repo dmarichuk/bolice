@@ -1,8 +1,7 @@
-from pymongo.errors import DuplicateKeyError
-from pyrogram import Client
-
 from db import MongoConnection
 from hash import get_image_hash, init_image
+from pymongo.errors import DuplicateKeyError
+from pyrogram import Client
 from utils import get_custom_logger
 
 logger = get_custom_logger("bot__parse")

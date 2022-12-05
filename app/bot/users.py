@@ -1,12 +1,14 @@
-import re
-from enum import Enum
 import datetime as dt
+import re
 from dataclasses import dataclass
+from enum import Enum
+
+from config import TRIAL_LIMIT
+from db import MongoConnection
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
+from pymongo.errors import DuplicateKeyError
 from pyrogram import Client
 from pyrogram import types as pt
-from motor.motor_asyncio import AsyncIOMotorCursor, AsyncIOMotorClient
-from pymongo.errors import DuplicateKeyError
-from db import MongoConnection
 from utils import get_custom_logger
 
 logger = get_custom_logger("bot__users")
@@ -32,40 +34,45 @@ class User:
     @classmethod
     def from_dict(cls, d: dict):
         user_map = dict(
-            id = d.get("id"),
-            username = d.get("username"),
-            tg_type = d.get("tg_type", UserType.TG_USER.value),
-            on_trial = d.get("on_trial", False),
-            last_poll = d.get("last_poll", 0),
+            id=d.get("id"),
+            username=d.get("username"),
+            tg_type=d.get("tg_type", UserType.TG_USER.value),
+            on_trial=d.get("on_trial", False),
+            last_poll=d.get("last_poll", 0),
         )
         return cls(**user_map)
-    
+
     async def to_db(self, chat_id: int, conn: AsyncIOMotorClient = None):
         if not conn:
             conn = MongoConnection(str(chat_id))
         col = await conn.get_user_collection()
         try:
-            await col.insert_one({
-                "username": self.username,
-                "tg_type": self.tg_type,
-                "on_trial": self.on_trial,
-                "last_poll": self.last_poll
-            })
+            await col.insert_one(
+                {
+                    "id": self.id,
+                    "username": self.username,
+                    "tg_type": self.tg_type,
+                    "on_trial": self.on_trial,
+                    "last_poll": self.last_poll,
+                }
+            )
         except DuplicateKeyError as e:
             await col.update_one(
                 {"username": self.username},
-                {"$set": {
+                {
+                    "$set": {
+                        "id": self.id,
                         "tg_type": self.tg_type,
                         "on_trial": self.on_trial,
-                        "last_poll": self.last_poll
+                        "last_poll": self.last_poll,
                     }
-                }
+                },
             )
-    
+
     def is_trial_available(self) -> tuple[bool, int]:
         now = dt.datetime.now()
         delta = (now - dt.datetime.fromtimestamp(self.last_poll)).total_seconds()
-        if delta <= 15 * 60:
+        if delta <= TRIAL_LIMIT:
             return False, delta
         return True, delta
 
@@ -74,12 +81,17 @@ class User:
             return True
         return False
 
-        
 
 def clean_username(raw: str) -> str:
     return username_re.search(raw).group("username")
 
-async def get_user_from_chat(user: pt.User | pt.Chat | str, chat_id: int, client: Client, conn: AsyncIOMotorClient = None) -> User:
+
+async def get_user_from_chat(
+    user: pt.User | pt.Chat | str,
+    chat_id: int,
+    client: Client,
+    conn: AsyncIOMotorClient = None,
+) -> User:
     if not conn:
         conn = MongoConnection(str(chat_id))
 
@@ -102,4 +114,3 @@ async def get_user_from_chat(user: pt.User | pt.Chat | str, chat_id: int, client
         return User.from_dict(user_doc)
     await user.to_db(chat_id, conn)
     return user
-    
