@@ -69,7 +69,7 @@ async def trial_handler(client: Client, message: pt.Message):
 
     if defendant.username == BOT_USER.username:
         logger.error("Trial against bolice")
-        await activate_execution(
+        return await activate_execution(
             client,
             message.chat.id,
             prosecutor,
