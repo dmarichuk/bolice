@@ -14,7 +14,7 @@ from bot.common import define_user_from_message
 from config import (BASE_DIR, POLL_TIMER, TELEGRAM_API_HASH,
                     TELEGRAM_API_ID, TELEGRAM_BOT_TOKEN)
 from db import MongoConnection
-from hash import get_image_hash, init_image
+from hash import get_image_hash, init_image, get_video_hash
 from utils import get_custom_logger, translate_seconds_to_timer
 
 logger = get_custom_logger("main")
@@ -226,6 +226,14 @@ async def photo_handler(client: Client, message: pt.Message):
 async def void(_, __):
     pass
 
+
+@bot_app.on_message(filters.video)
+async def log_video_info(client: Client, message: pt.Message):
+    logger.info(f'VIDEO! name:{message.video.file_name}, id:{message.video.file_id}')
+    temp_file_path = f"/tmp/{message.video.file_unique_id}_{message.video.file_name}"
+    await client.download_media(message.video, file_name=temp_file_path)
+    vhash = get_video_hash(temp_file_path)
+    logger.info(f'HASH:{vhash}')
 
 if __name__ == "__main__":
     import sys

@@ -1,8 +1,10 @@
 import enum
+import os
 import typing as t
 
 import PIL
 from imagehash import ImageHash, hex_to_hash, whash
+from videohash import VideoHash
 
 from utils import get_custom_logger
 
@@ -20,6 +22,10 @@ def init_image(data: t.BinaryIO) -> PIL.Image:
 
 def get_image_hash(img: PIL.Image, hash_size=32) -> ImageHash:
     return whash(img, hash_size=hash_size)
+
+
+def get_video_hash(path: str) -> VideoHash:
+    return VideoHash(path=path)
 
 
 class CompareResult(enum.IntEnum):
