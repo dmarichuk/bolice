@@ -37,9 +37,7 @@ jobs:
               echo MONGO_HOST=mongodb >> .env
 
               # deploy on docker
-              docker compose down && \
-              docker compose up --build -d & \
-              docker compose logs -f app >> app.log
+              nohup sh restart.sh
 
     send_message:
       runs-on: ubuntu-latest
