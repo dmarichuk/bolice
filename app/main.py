@@ -15,7 +15,7 @@ from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
 from pyrogram import Client, filters
 from pyrogram import types as pt
-from broker import redis_db
+from redis import redis_db
 from utils import get_custom_logger, translate_seconds_to_timer
 
 logger = get_custom_logger("main")
@@ -232,13 +232,13 @@ async def get_meme_from_queue(client, message):
             reply_to_message_id=message.id,
         )
     else:
-        await client.send_message("Мемов пока нет")
+        await client.send_message(message.chat.id, "Мемов пока нет")
 
 
 @bot_app.on_message(filters.regex("^!скока"))
 async def get_len_of_memes(client, message):
     length = await redis_db.llen(QUEUE_NAME)
-    await client.send_message(message.chat.id, f"В очереди {length} мемов!")
+    await client.send_message(message.chat_id, f"Мемов в очереди: {length}")
 
 
 @bot_app.on_callback_query()
