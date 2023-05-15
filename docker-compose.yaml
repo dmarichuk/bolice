@@ -19,3 +19,19 @@ services:
       - "./app/.env"
     volumes:
       - ./logs/:/logs/
+
+  redis:
+    image: redis:7
+    expose:
+      - 6379
+    restart: always
+
+  scraper:
+    build:
+      context: ./scraper/
+      dockerfile: Dockerfile
+    env_file:
+      - "./app/.env"
+    depends_on: 
+      - redis
+

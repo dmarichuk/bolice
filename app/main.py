@@ -1,3 +1,4 @@
+import io
 import asyncio
 from operator import methodcaller
 
@@ -8,12 +9,13 @@ from bot.punish import activate_bolice, activate_execution, get_judgment_poll
 from bot.search import search_for_similarity
 from bot.users import get_user_from_chat
 from config import (BASE_DIR, POLL_TIMER, TELEGRAM_API_HASH, TELEGRAM_API_ID,
-                    TELEGRAM_BOT_TOKEN)
+                    TELEGRAM_BOT_TOKEN, QUEUE_NAME)
 from db import MongoConnection
 from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
 from pyrogram import Client, filters
 from pyrogram import types as pt
+from redis import redis_db
 from utils import get_custom_logger, translate_seconds_to_timer
 
 logger = get_custom_logger("main")
@@ -218,6 +220,25 @@ async def photo_handler(client: Client, message: pt.Message):
             await activate_bolice(client, message.chat.id, message, orig_doc)
         else:
             logger.info(f"Hash {hash} is deactivated")
+
+
+@bot_app.on_message(filters.regex("^!хочумем"))
+async def get_meme_from_queue(client, message):
+    f = await redis_db.rpop(QUEUE_NAME)
+    if f:
+        await client.send_photo(
+            message.chat.id,
+            io.BytesIO(bytes(f)),
+            reply_to_message_id=message.id,
+        )
+    else:
+        await client.send_message(message.chat.id, "Мемов пока нет")
+
+
+@bot_app.on_message(filters.regex("^!скока"))
+async def get_len_of_memes(client, message):
+    length = await redis_db.llen(QUEUE_NAME)
+    await client.send_message(message.chat_id, f"Мемов в очереди: {length}")
 
 
 @bot_app.on_callback_query()
