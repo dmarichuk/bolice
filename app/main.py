@@ -15,7 +15,7 @@ from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
 from pyrogram import Client, filters
 from pyrogram import types as pt
-from redis import redis_db
+from broker import redis_db
 from utils import get_custom_logger, translate_seconds_to_timer
 
 logger = get_custom_logger("main")
