@@ -34,8 +34,9 @@ jobs:
               echo D_DISK_CHAT_ID=${{ secrets.D_DISK_CHAT_ID }} >> .env && \
               echo MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} >> .env && \
               echo MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} >> .env && \
-              echo MONGO_HOST=mongodb >> .env
-
+              echo MONGO_HOST=mongodb >> .env && \
+              echo REDIS_HOST=redis://redis >> .env && \
+              echo CHANNELS_TO_LISTEN=${{ secrets.CHANNELS_TO_LISTEN }} >> .env
               # deploy on docker
               nohup sh restart.sh
 

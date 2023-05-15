@@ -31,7 +31,7 @@ services:
       context: ./scraper/
       dockerfile: Dockerfile
     env_file:
-      - "./scraper/.env"
+      - "./app/.env"
     depends_on: 
       - redis
 
