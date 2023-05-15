@@ -36,10 +36,8 @@ jobs:
               echo MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} >> .env && \
               echo MONGO_HOST=mongodb >> .env && \
               echo REDIS_HOST=redis://redis >> .env && \
-              echo CHANNELS_TO_LISTEN=${{ secrets.CHANNELS_TO_LISTEN }} >> .env
-              # deploy on docker
-              nohup sh restart.sh
-
+              echo CHANNELS_TO_LISTEN=${{ secrets.CHANNELS_TO_LISTEN }} >> .env && \
+              docker compose down && docker compose up --build -d
     send_message:
       runs-on: ubuntu-latest
       needs: deploy
