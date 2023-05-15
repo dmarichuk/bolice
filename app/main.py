@@ -238,7 +238,7 @@ async def get_meme_from_queue(client, message):
 @bot_app.on_message(filters.regex("^!скока"))
 async def get_len_of_memes(client, message):
     length = await redis_db.llen(QUEUE_NAME)
-    await client.send_message(message.chat_id, f"Мемов в очереди: {length}")
+    await client.send_message(message.chat.id, f"Мемов в очереди: {length}")
 
 
 @bot_app.on_callback_query()
