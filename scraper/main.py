@@ -27,7 +27,7 @@ async def add_meme_to_queue(data):
     await redis_db.lpush(QUEUE_NAME, data)
 
 
-@app.on_message(filters.channel & is_chosen_channel & filters.photo)
+@app.on_message(filters.channel & ~filters.forwarded & is_chosen_channel & filters.photo)
 async def await_memes(client, message):
     f = await client.download_media(message.photo, in_memory=True)
     await add_meme_to_queue(f.getvalue())
