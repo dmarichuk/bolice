@@ -266,7 +266,7 @@ async def change_schedule(client, message):
         case [_, _]:
             schedule_as_list = parsed_message[1].split("=")
             schedule_as_dict = {
-                schedule_as_list[0]: int(schedule_as_list[1])
+                schedule_as_list[0]: schedule_as_list[1]
             }
             try:
                 scheduler.remove_all_jobs()
