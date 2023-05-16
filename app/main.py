@@ -291,6 +291,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1 or sys.argv[1] == "run_bot":
         bot_app.run()
+        scheduler.run()
     elif len(sys.argv) == 3 and sys.argv[1] == "parse_chat":
         chat_id = int(sys.argv[2])
         user_app.run(parse_chat_photos(user_app, chat_id))
