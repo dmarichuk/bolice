@@ -1,15 +1,15 @@
 import io
 import asyncio
-from operator import methodcaller
 
 import uvloop
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from bot.common import define_user_from_message, edit_inline_button_with_void
 from bot.parse import parse_chat_photos
 from bot.punish import activate_bolice, activate_execution, get_judgment_poll
 from bot.search import search_for_similarity
 from bot.users import get_user_from_chat
 from config import (BASE_DIR, POLL_TIMER, TELEGRAM_API_HASH, TELEGRAM_API_ID,
-                    TELEGRAM_BOT_TOKEN, QUEUE_NAME)
+                    TELEGRAM_BOT_TOKEN, QUEUE_NAME, D_DISK_CHAT_ID)
 from db import MongoConnection
 from hash import get_image_hash, init_image
 from pymongo import errors as mongo_errors
@@ -30,6 +30,7 @@ bot_app = Client(
     bot_token=TELEGRAM_BOT_TOKEN,
     in_memory=True,
 )
+scheduler = AsyncIOScheduler()
 
 BOT_USER = None
 
@@ -239,6 +240,43 @@ async def get_meme_from_queue(client, message):
 async def get_len_of_memes(client, message):
     length = await redis_db.llen(QUEUE_NAME)
     await client.send_message(message.chat.id, f"Мемов в очереди: {length}")
+
+
+async def post_meme_job():
+    """D:disk only"""
+    f = await redis_db.rpop(QUEUE_NAME)
+    if f:
+        logger.info(f"Ready to post meme to {D_DISK_CHAT_ID}")
+        await bot_app.send_photo(
+            D_DISK_CHAT_ID,
+            io.BytesIO(bytes(f))
+        )
+        logger.info("Scheduled job succeeded")
+
+
+@bot_app.on_message(filters.regex("^!расписание"))
+# ToDo: сделать нормальные подписки на очереди с конфигурируемыми списками для каждого чата
+async def change_schedule(client, message):
+    parsed_message = message.text.split(" ")
+    match parsed_message:
+        case [_]:
+            return await message.reply(
+                "Не могу распознать команду\nВводите команду вида: !расписание MINUTES/HOURS/DAYS=N"
+            )
+        case [_, _]:
+            schedule_as_list = parsed_message[1].split("=")
+            schedule_as_dict = {
+                schedule_as_list[0]: schedule_as_list[1]
+            }
+            try:
+                scheduler.remove_all_jobs()
+                logger.warning("All jobs removed from scheduler")
+                scheduler.add_job(post_meme_job, "interval", **schedule_as_dict)
+                logger.info(f"Job added to schedule: {schedule_as_dict}")
+                await client.send_message(message.chat.id, f"Расписание установлено: {schedule_as_dict}")
+            except Exception as ex:
+                logger.error(f"Something went wrong {ex}")
+                await client.send_message(message.chat.id, f"Ошибка: {ex}")
 
 
 @bot_app.on_callback_query()
